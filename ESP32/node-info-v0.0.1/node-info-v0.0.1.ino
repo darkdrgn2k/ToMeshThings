@@ -147,7 +147,28 @@ void wifiConnectedLoop(){
       // output RAW data
       Serial.println("RAW DATA");
       Serial.println(ydata);
-      const size_t bufferSize = JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(8) + 370;
+      StaticJsonDocument<5000> doc;
+      DeserializationError error = deserializeJson(doc, ydata);
+      if (error) {
+        Serial.print(F("deserializeJson() failed: "));
+        Serial.println(error.c_str());
+        return;
+      }
+
+
+      JsonObject obj=doc["peers"].as<JsonObject>();
+      for (JsonObject::iterator it=obj.begin(); it!=obj.end(); ++it) {
+        Serial.print("Peer: ");
+        Serial.print(it->key().c_str());
+        Serial.print(" Endpoint ");
+        const char* endpoint = doc["peers"][it->key()]["endpoint"];
+        Serial.print(endpoint);
+        Serial.print(" Uptime ");
+        const int uptime = doc["peers"][it->key()]["uptime"]; // uptime
+        Serial.println(uptime);
+      }
+
+ /*     const size_t bufferSize = JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + JSON_OBJECT_SIZE(8) + 370;
       DynamicJsonBuffer jsonBuffer(bufferSize);
       JsonObject& root = jsonBuffer.parseObject(ydata);
       // Parameters
@@ -161,7 +182,7 @@ void wifiConnectedLoop(){
       Serial.println(endpoint);
       Serial.print("Uptime:"); 
       Serial.println(uptime);
-      
+   */   
     }
     //Close connection
     http.end();
